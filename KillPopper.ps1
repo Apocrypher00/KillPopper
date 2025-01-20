@@ -12,7 +12,7 @@
         Future versions may ignore "Player Downed", but I haven't figured out how to differentiate them yet.
 
     .VERSION
-        1.2.0
+        1.2.1
 
     .AUTHOR
         Apocrypher00
@@ -39,8 +39,8 @@ Write-Host "Gallery folder is '$GalleryPath'"
 $SplashPath = "C:\Program Files (x86)\Steam\steamapps\common\Hunt Showdown\EasyAntiCheat\SplashScreen.png"
 Write-Host "Splash screen is at '$SplashPath'"
 
-$CurrentVersion = "1.2.0"
-$RepoURL        = "https://github.com/Apocrypher00/KillPopper/blob/master"
+$CurrentVersion = "1.2.1"
+$RepoURL        = "https://raw.githubusercontent.com/Apocrypher00/KillPopper/master"
 # $ScriptURL      = "$RepoURL/KillPopper.ps1"
 $VersionFileURL = "$RepoURL/version.txt"
 
@@ -89,6 +89,18 @@ try {
         Wait-Exit "Failed to start transcript!"
     }
 
+    # Check if NuGet is installed
+    if (-not (Get-PackageProvider -Name "NuGet" -ListAvailable -ErrorAction SilentlyContinue)) {
+        Write-Warning "NuGet not installed. Installing..."
+        try {
+            Install-PackageProvider -Name "NuGet" -Scope CurrentUser -Force
+        } catch {
+            Wait-Exit "Failed to install NuGet!" $_
+        }
+    } else {
+        Write-Host "NuGet is already installed."
+    }
+
     # Check if the BurntToast module is installed
     if (-not (Get-InstalledModule -Name "BurntToast" -ErrorAction SilentlyContinue)) {
         Write-Warning "BurntToast not installed. Installing..."
@@ -130,7 +142,7 @@ try {
         $LatestVersion = Invoke-WebRequest -Uri $VersionFileURL -UseBasicParsing | Select-Object -ExpandProperty Content
         $LatestVersion = $LatestVersion.Trim()
 
-        if ($CurrentVersion -ne $LatestVersion) {
+        if ($LatestVersion -gt $CurrentVersion) {
             Write-Warning "New version available: $LatestVersion!"
             # Write-Host "Updating script..."
             
